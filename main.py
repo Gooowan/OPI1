@@ -58,7 +58,7 @@ def humanize_time_difference(last_seen_date, lang='en'):
         return translations[lang]['hour_ago']
     elif difference < timedelta(hours=24) and difference.total_seconds() >= 7200:
         return translations[lang]['today']
-    elif difference < timedelta(days=1):
+    elif timedelta(hours=24) <= difference < timedelta(hours=48):
         return translations[lang]['yesterday']
     elif difference < timedelta(days=7):
         return translations[lang]['this_week']
