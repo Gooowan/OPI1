@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timedelta
 import re
+import unittest
 
 translations = {
     'en': {
@@ -99,3 +100,58 @@ while True:
     else:
         print(f"Failed to fetch data. Status code: {response.status_code}")
         break
+
+
+class TestHumanizeTimeDifference(unittest.TestCase):
+
+    def test_unknown_last_seen_date(self):
+        self.assertEqual(humanize_time_difference(None), translations['en']['unknown'])
+        self.assertEqual(humanize_time_difference(None, 'ua'), translations['ua']['unknown'])
+
+    def test_unknown_time_format(self):
+        self.assertEqual(humanize_time_difference("2023-09-27 12:34:56"), translations['en']['unknown_format'])
+        self.assertEqual(humanize_time_difference("2023-09-27 12:34:56", 'ua'), translations['ua']['unknown_format'])
+
+    def test_just_now(self):
+        time = (datetime.utcnow() - timedelta(seconds=10)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['just_now'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['just_now'])
+
+    def test_less_than_a_minute_ago(self):
+        time = (datetime.utcnow() - timedelta(seconds=40)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['less_minute'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['less_minute'])
+
+    def test_couple_of_minutes_ago(self):
+        time = (datetime.utcnow() - timedelta(minutes=20)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['couple_minutes'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['couple_minutes'])
+
+    def test_hour_ago(self):
+        time = (datetime.utcnow() - timedelta(minutes=90)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['hour_ago'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['hour_ago'])
+
+    def test_today(self):
+        time = (datetime.utcnow() - timedelta(hours=3)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['today'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['today'])
+
+    def test_yesterday(self):
+        time = (datetime.utcnow() - timedelta(hours=25)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['yesterday'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['yesterday'])
+
+    def test_this_week(self):
+        time = (datetime.utcnow() - timedelta(days=5)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['this_week'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['this_week'])
+
+    def test_long_time_ago(self):
+        time = (datetime.utcnow() - timedelta(days=20)).isoformat()
+        self.assertEqual(humanize_time_difference(time), translations['en']['long_time_ago'])
+        self.assertEqual(humanize_time_difference(time, 'ua'), translations['ua']['long_time_ago'])
+
+
+# Run the tests
+unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestHumanizeTimeDifference))
