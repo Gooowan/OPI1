@@ -1,7 +1,8 @@
 
 translations = {
     'en': {
-        'just_now': "is online just now",
+        'online': "is online now",
+        'just_now': "was online just now",
         'less_minute': "was online less than a minute ago",
         'couple_minutes': "was online a couple of minutes ago",
         'hour_ago': "was online an hour ago",
@@ -13,7 +14,8 @@ translations = {
         'unknown_format': "Unknown time format"
     },
     'ua': {
-        'just_now': "зараз в мережі",
+        'online': "в мережі",
+        'just_now': "був в мережі",
         'less_minute': "був в мережі менше хвилини тому",
         'couple_minutes': "був в мережі кілька хвилин тому",
         'hour_ago': "був в мережі годину тому",

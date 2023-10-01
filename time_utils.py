@@ -2,7 +2,10 @@ import re
 from datetime import datetime, timedelta
 from translations import translations
 
+
 def humanize_time_difference(last_seen_date, lang='en'):
+    if last_seen_date is None:
+        return translations[lang]['online']
     if not last_seen_date:
         return translations[lang]['unknown']
 
@@ -20,7 +23,7 @@ def humanize_time_difference(last_seen_date, lang='en'):
 
     if difference < timedelta(seconds=30):
         return translations[lang]['just_now']
-    elif difference < timedelta(seconds=60):
+    elif difference < timedelta(seconds=59):
         return translations[lang]['less_minute']
     elif difference < timedelta(minutes=59):
         return translations[lang]['couple_minutes']
@@ -28,9 +31,10 @@ def humanize_time_difference(last_seen_date, lang='en'):
         return translations[lang]['hour_ago']
     elif date_time >= start_of_today:
         return translations[lang]['today']
-    elif start_of_yesterday + timedelta(hours=2) <= date_time < start_of_today:
+    elif start_of_yesterday <= date_time < start_of_today:
         return translations[lang]['yesterday']
     elif difference < timedelta(days=7):
         return translations[lang]['this_week']
     else:
         return translations[lang]['long_time_ago']
+
