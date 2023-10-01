@@ -1,10 +1,10 @@
 from time_utils import humanize_time_difference
 from api_utils import fetch_users_last_seen
 
-offset = 0
+
 
 while True:
-
+    offset = 0
     lang = input("Enter your language, виберіть мову: en, ua: ")
     if lang not in ['ua', 'en']:
         lang = "en"
