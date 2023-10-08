@@ -3,8 +3,8 @@ from api_utils import fetch_users_last_seen, collect_api_data
 from translations import translations  # Assuming you have this import in your actual code.
 from datetime import datetime
 
-
-users_data = collect_api_data(delay_seconds=0, max_iterations=5)
+# ya v dzhakuzi, eto fact
+users_data = collect_api_data(delay_seconds=1, max_iterations=5)
 
 user_last_seen_data = {}
 for entry in users_data:
@@ -14,7 +14,7 @@ for entry in users_data:
     user_last_seen_data[user_id].append(entry['lastSeenDate'])
 
 
-def feature1(lang='en'):
+def feature1():
     # Fetch latest user data
     user_data = collect_api_data(delay_seconds=10, max_iterations=5)  # Adjust parameters as needed
 
@@ -49,9 +49,9 @@ def feature2(date, user_id):
     }
 
 
-def feature3(predict_date):
+def feature3(date):
 
-    predict_datetime = datetime.strptime(predict_date, "%Y-%m-%dT%H:%M:%S")
+    predict_datetime = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
     day_of_week = predict_datetime.weekday()
     time_of_day = predict_datetime.time()
 
@@ -65,14 +65,27 @@ def feature3(predict_date):
                                                                                timestamp_datetime.weekday()].get(
                     time_of_day, 0) + 1
 
-
     total_users = online_counts[day_of_week].get(time_of_day, 0)
     avg_users = total_users / len(user_last_seen_data)
     return avg_users
 
 
-def feature4(response_data):
-    pass
+def feature4(date, user_id):
+
+    if user_id not in user_last_seen_data:
+        return {"error": "User not found"}, 404
+
+    predict_datetime = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
+    day_of_week = predict_datetime.weekday()
+    time_of_day = predict_datetime.time()
+
+    user_timestamps = user_last_seen_data[user_id]
+    matching_dates = [timestamp for timestamp in user_timestamps if datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").weekday() == day_of_week and datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").time() == time_of_day]
+
+    weeks_in_data = len(set([datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").date().isocalendar()[1] for timestamp in user_timestamps]))
+    probability = len(matching_dates) / weeks_in_data if weeks_in_data > 0 else 0
+
+    return {"probability": probability}
 
 
 while True:
@@ -107,7 +120,7 @@ while True:
 
             if input_command == '1':
 
-                print(f"Online users: {feature1(lang)}")
+                print(f"Online users: {feature1()}")
 
             elif input_command == '2':
 
@@ -121,7 +134,10 @@ while True:
                 print(f"Predicted number of users online: {feature3(date)}")
 
             elif input_command == '4':
-                feature4(response_data)
+                date = input("Date. Input format - 2023-27-09T20:00:00: ")
+                user_id = input("Date. A4DC2287-B03D-430C-92E8-02216D828709: ")
+
+                print(feature4(date, user_id))
             elif input_command == 'exit':
                 break
             else:
