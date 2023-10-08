@@ -1,4 +1,5 @@
 import requests
+from time import sleep
 
 
 def fetch_users_last_seen(offset=0):
@@ -7,29 +8,41 @@ def fetch_users_last_seen(offset=0):
     return response
 
 
-def fetch_online_users(offset=0):
+def collect_api_data(delay_seconds=10, max_iterations=None):
+    """
+    Continuously polls the API using fetch_users_last_seen and collects its data with a specified delay.
 
-    # Define the base URL for the API
-    base_url = "https://sef.podkolzin.consulting/api/stats/users"
+    Args:
+    - delay_seconds (int): Time delay between consecutive API requests.
+    - max_iterations (int): Maximum number of times the API will be polled. If None, it will run indefinitely.
 
-    # Define the date parameter
-    date_param = "2023-27-09-20:00"  # Update with your desired date and time
+    Returns:
+    - list: A list of collected data from the API.
+    """
+    collected_data = []
+    iterations = 0
 
-    # Create the full URL with the date parameter
-    url = f"{base_url}?date={date_param}"
+    while max_iterations is None or iterations < max_iterations:
+        try:
+            offset = len(collected_data)
+            response = fetch_users_last_seen(offset)
 
-    try:
-        # Make the GET request
-        response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                collected_data.extend(data['data'])  # Assuming the API returns a 'data' key with a list of user data.
+                print(f"Collected {len(data['data'])} data entries.")
+            else:
+                print(f"Failed to fetch data. Status code: {response.status_code}")
 
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            # Parse and print the response JSON
-            data = response.json()
-            print("Users Online:", data.get("usersOnline"))
-        else:
-            print("Request failed with status code:", response.status_code)
+        except Exception as e:
+            print(f"Error occurred: {e}")
 
-    except Exception as e:
-        print("An error occurred:", str(e))
+        # Sleep for the specified delay before the next request
+        sleep(delay_seconds)
 
+        iterations += 1
+
+    return collected_data
+
+# Example usage:
+# data = collect_api_data(delay_seconds=10, max_iterations=5)
