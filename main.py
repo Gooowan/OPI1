@@ -1,7 +1,19 @@
 from time_utils import humanize_time_difference
 from api_utils import fetch_users_last_seen, collect_api_data
 from translations import translations  # Assuming you have this import in your actual code.
+from datetime import datetime
 
+
+# Assuming the collected data is stored in this variable
+users_data = collect_api_data(delay_seconds=0, max_iterations=5)
+
+# Convert the collected data to a more usable format
+user_last_seen_data = {}
+for entry in users_data:
+    user_id = entry['userId']
+    if user_id not in user_last_seen_data:
+        user_last_seen_data[user_id] = []
+    user_last_seen_data[user_id].append(entry['lastSeenDate'])
 
 def feature1(lang='en'):
     # Fetch latest user data
@@ -17,8 +29,26 @@ def feature1(lang='en'):
     return online_count
 
 
-def feature2(response_data):
-    pass
+def feature2(date, user_id):
+    # Check if user exists
+    if user_id not in user_last_seen_data:
+        return {"error": "User not found"}, 404
+
+    online_times = user_last_seen_data[user_id]
+
+    # If we don't have data for the specific date, set wasUserOnline to None
+    wasUserOnline = None if date not in online_times else (True if date in online_times else False)
+
+    nearestOnlineTime = None
+    if not wasUserOnline:
+        # Find nearest online time
+        nearestOnlineTime = min(online_times, key=lambda d: abs(
+            datetime.strptime(d, "%Y-%m-%dT%H:%M:%S") - datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")))
+
+    return {
+        "wasUserOnline": wasUserOnline,
+        "nearestOnlineTime": nearestOnlineTime
+    }
 
 
 def feature3(response_data):
@@ -62,7 +92,9 @@ while True:
             if input_command == '1':
                 print(f"Online users: {feature1(lang)}")
             elif input_command == '2':
-                feature2(response_data)
+                date = "2023-27-09T20:00:00"
+                user_id = "A4DC2287-B03D-430C-92E8-02216D828709"
+                print(feature2(date, user_id))
             elif input_command == '3':
                 feature3(response_data)
             elif input_command == '4':
