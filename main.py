@@ -4,10 +4,8 @@ from translations import translations  # Assuming you have this import in your a
 from datetime import datetime
 
 
-# Assuming the collected data is stored in this variable
 users_data = collect_api_data(delay_seconds=0, max_iterations=5)
 
-# Convert the collected data to a more usable format
 user_last_seen_data = {}
 for entry in users_data:
     user_id = entry['userId']
@@ -15,13 +13,14 @@ for entry in users_data:
         user_last_seen_data[user_id] = []
     user_last_seen_data[user_id].append(entry['lastSeenDate'])
 
+
 def feature1(lang='en'):
     # Fetch latest user data
     user_data = collect_api_data(delay_seconds=10, max_iterations=5)  # Adjust parameters as needed
 
     online_count = 0
-    for user_info in user_data:
-        status = humanize_time_difference(user_info.get('lastSeenDate', None), lang)
+    for user_info_f in user_data:
+        status = humanize_time_difference(user_info_f.get('lastSeenDate', None), lang)
         if status in [translations[lang]['online']]:
             online_count += 1
 
@@ -30,18 +29,17 @@ def feature1(lang='en'):
 
 
 def feature2(date, user_id):
-    # Check if user exists
+
     if user_id not in user_last_seen_data:
         return {"error": "User not found"}, 404
 
     online_times = user_last_seen_data[user_id]
 
-    # If we don't have data for the specific date, set wasUserOnline to None
     wasUserOnline = None if date not in online_times else (True if date in online_times else False)
 
     nearestOnlineTime = None
     if not wasUserOnline:
-        # Find nearest online time
+
         nearestOnlineTime = min(online_times, key=lambda d: abs(
             datetime.strptime(d, "%Y-%m-%dT%H:%M:%S") - datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")))
 
@@ -51,8 +49,26 @@ def feature2(date, user_id):
     }
 
 
-def feature3(response_data):
-    pass
+def feature3(predict_date):
+
+    predict_datetime = datetime.strptime(predict_date, "%Y-%m-%dT%H:%M:%S")
+    day_of_week = predict_datetime.weekday()
+    time_of_day = predict_datetime.time()
+
+    online_counts = {i: {} for i in range(7)}
+
+    for user_id, timestamps in user_last_seen_data.items():
+        for timestamp in timestamps:
+            timestamp_datetime = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+            if timestamp_datetime.time() == time_of_day:
+                online_counts[timestamp_datetime.weekday()][time_of_day] = online_counts[
+                                                                               timestamp_datetime.weekday()].get(
+                    time_of_day, 0) + 1
+
+
+    total_users = online_counts[day_of_week].get(time_of_day, 0)
+    avg_users = total_users / len(user_last_seen_data)
+    return avg_users
 
 
 def feature4(response_data):
@@ -90,13 +106,20 @@ while True:
             input_command = input("Input your feature (1/2/3/4 or 'exit' to quit): ")
 
             if input_command == '1':
+
                 print(f"Online users: {feature1(lang)}")
+
             elif input_command == '2':
-                date = "2023-27-09T20:00:00"
-                user_id = "A4DC2287-B03D-430C-92E8-02216D828709"
+
+                date = input("Date. Input format - 2023-27-09T20:00:00: ")
+                user_id = input("Date. A4DC2287-B03D-430C-92E8-02216D828709: ")
+
                 print(feature2(date, user_id))
             elif input_command == '3':
-                feature3(response_data)
+
+                date = input("Input time in format: 2023-10-10T20:00:00: ")
+                print(f"Predicted number of users online: {feature3(date)}")
+
             elif input_command == '4':
                 feature4(response_data)
             elif input_command == 'exit':
