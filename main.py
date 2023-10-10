@@ -14,9 +14,8 @@ for entry in users_data:
     user_last_seen_data[user_id].append(entry['lastSeenDate'])
 
 
-def feature1():
-    # Fetch latest user data
-    user_data = collect_api_data(delay_seconds=10, max_iterations=5)  # Adjust parameters as needed
+def usersOnline():
+    user_data = collect_api_data(delay_seconds=10, max_iterations=5)
 
     online_count = 0
     for user_info_f in user_data:
@@ -28,7 +27,7 @@ def feature1():
     return online_count
 
 
-def feature2(date, user_id):
+def nearestOnlineTime(date, user_id):
 
     if user_id not in user_last_seen_data:
         return {"error": "User not found"}, 404
@@ -49,7 +48,7 @@ def feature2(date, user_id):
     }
 
 
-def feature3(date):
+def onlinePrediction(date):
 
     predict_datetime = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
     day_of_week = predict_datetime.weekday()
@@ -70,7 +69,7 @@ def feature3(date):
     return avg_users
 
 
-def feature4(date, user_id):
+def userPrediction(date, user_id):
 
     if user_id not in user_last_seen_data:
         return {"error": "User not found"}, 404
@@ -120,24 +119,24 @@ while True:
 
             if input_command == '1':
 
-                print(f"Online users: {feature1()}")
+                print(f"Online users: {usersOnline()}")
 
             elif input_command == '2':
 
                 date = input("Date. Input format - 2023-27-09T20:00:00: ")
                 user_id = input("Date. A4DC2287-B03D-430C-92E8-02216D828709: ")
 
-                print(feature2(date, user_id))
+                print(nearestOnlineTime(date, user_id))
             elif input_command == '3':
 
                 date = input("Input time in format: 2023-10-10T20:00:00: ")
-                print(f"Predicted number of users online: {feature3(date)}")
+                print(f"Predicted number of users online: {onlinePrediction(date)}")
 
             elif input_command == '4':
                 date = input("Date. Input format - 2023-27-09T20:00:00: ")
                 user_id = input("Date. A4DC2287-B03D-430C-92E8-02216D828709: ")
 
-                print(feature4(date, user_id))
+                print(userPrediction(date, user_id))
             elif input_command == 'exit':
                 break
             else:

@@ -1,5 +1,6 @@
 import requests
 from time import sleep
+from datetime import datetime
 
 
 def fetch_users_last_seen(offset=0):
@@ -46,3 +47,60 @@ def collect_api_data(delay_seconds=10, max_iterations=None):
 
 # Example usage:
 # data = collect_api_data(delay_seconds=10, max_iterations=5)
+
+
+def predict_online_chance(user_id, specified_date, user_last_seen_data):
+    """Predicts the chance that a user will be online on a specified date.
+    
+    Args:
+        user_id (int): The ID of the user.
+        specified_date (datetime): The date for which to make the prediction.
+        user_last_seen_data (dict): Historical data of user's last seen dates.
+        
+    Returns:
+        float: The probability (from 0 to 1) that the user will be online on the specified date.
+    """
+    
+    if user_id not in user_last_seen_data:
+        return 0.0  # If no historical data for the user
+    
+    # Extracting weekday and time from the specified date
+    specified_weekday = specified_date.weekday()
+    specified_time = specified_date.time()
+
+    # Counting occurrences when the user was online at the same weekday and time
+    occurrences = sum(1 for date in user_last_seen_data[user_id]
+                      if date.weekday() == specified_weekday and date.time() == specified_time)
+    
+    total_weeks = len(set([date.date() for date in user_last_seen_data[user_id]])) / 7.0
+    
+    # Calculating the probability
+    chance = occurrences / total_weeks
+    
+    return chance
+
+
+def online_prediction(specified_date, users_data):
+    """Predicts the average number of users online on a specified date based on historical data.
+    
+    Args:
+        specified_date (datetime): The date for which to make the prediction.
+        users_data (list): List of dictionaries containing user data with 'lastSeenDate' key.
+        
+    Returns:
+        float: The predicted average number of users online at the specified date.
+    """
+    
+    # Extracting weekday and time from the specified date
+    specified_weekday = specified_date.weekday()
+    specified_time = specified_date.time()
+
+    # Counting occurrences of users online at the same weekday and time
+    occurrences = [entry for entry in users_data if 
+                   datetime.fromisoformat(entry['lastSeenDate']).weekday() == specified_weekday and 
+                   datetime.fromisoformat(entry['lastSeenDate']).time() == specified_time]
+    
+    # Calculating the average number of users online
+    average_users_online = len(occurrences) / len(users_data)
+    
+    return average_users_online

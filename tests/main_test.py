@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, Mock
-from main import feature1, feature2, feature3
+from main import usersOnline, nearestOnlineTime, onlinePrediction
 
 
 class TestMainFeatures(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestMainFeatures(unittest.TestCase):
             {"userId": "1", "lastSeenDate": "2023-10-08T10:10:10"},
             {"userId": "2", "lastSeenDate": "2023-10-07T10:10:10"}
         ]
-        online_count = feature1()
+        online_count = usersOnline()
         self.assertEqual(online_count, 1)
 
     def test_feature2(self):
@@ -22,7 +22,7 @@ class TestMainFeatures(unittest.TestCase):
             "1": ["2023-10-08T10:10:10", "2023-10-07T10:10:10"],
             "2": ["2023-10-06T10:10:10"]
         }
-        result = feature2("2023-10-08T10:10:10", "1")
+        result = nearestOnlineTime("2023-10-08T10:10:10", "1")
         self.assertEqual(result, {"wasUserOnline": True, "nearestOnlineTime": None})
 
 
