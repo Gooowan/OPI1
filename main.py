@@ -69,7 +69,7 @@ def onlinePrediction(date):
     return avg_users
 
 
-def userPrediction(date, user_id):
+def userPrediction(date, user_id, tolerance):
 
     if user_id not in user_last_seen_data:
         return {"error": "User not found"}, 404
@@ -84,7 +84,10 @@ def userPrediction(date, user_id):
     weeks_in_data = len(set([datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").date().isocalendar()[1] for timestamp in user_timestamps]))
     probability = len(matching_dates) / weeks_in_data if weeks_in_data > 0 else 0
 
-    return {"probability": probability}
+    if tolerance <= probability:
+        return {"True. probability": probability}
+    else:
+        return {"False. probability": probability}
 
 
 while True:
@@ -135,8 +138,9 @@ while True:
             elif input_command == '4':
                 date = input("Date. Input format - 2023-27-09T20:00:00: ")
                 user_id = input("Date. A4DC2287-B03D-430C-92E8-02216D828709: ")
+                tolarance = input("Input tolerance in format, 0,82:  ")
 
-                print(userPrediction(date, user_id))
+                print(userPrediction(date, user_id, tolarance))
             elif input_command == 'exit':
                 break
             else:
