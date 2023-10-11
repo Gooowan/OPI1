@@ -31,7 +31,7 @@ def collect_api_data(delay_seconds=10, max_iterations=None):
             if response.status_code == 200:
                 data = response.json()
                 collected_data.extend(data['data'])  # Assuming the API returns a 'data' key with a list of user data.
-                print(f"Collected {len(data['data'])} data entries.")
+                # print(f"Collected {len(data['data'])} data entries.")
             else:
                 print(f"Failed to fetch data. Status code: {response.status_code}")
 
