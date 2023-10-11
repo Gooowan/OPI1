@@ -105,6 +105,28 @@ def totalUserMinutes(focus_user_id):
     return total_seconds
 
 
+def averageUserTime(focus_user_id):
+
+    users_data = collect_api_data(delay_seconds=1,
+                                  max_iterations=7 * 24 * 60 * 60)
+
+    daily_seconds = [0 for _ in range(7)]
+    total_seconds = 0
+
+    current_time = datetime.utcnow()
+
+    for entry in users_data:
+        if entry['userId'] == focus_user_id:
+            day_difference = (current_time - datetime.fromisoformat(entry['lastSeenDate'])).days
+            if 0 <= day_difference < 7:
+                daily_seconds[day_difference] += 1
+                total_seconds += 1
+
+    average_daily_time = sum(daily_seconds) / 7
+    average_weekly_time = total_seconds
+
+    return average_daily_time, average_weekly_time
+
 
 while True:
     offset = 0
@@ -113,26 +135,26 @@ while True:
     if lang not in ['ua', 'en']:
         lang = "en"
 
-    while True:
-        count = 0
-        response = fetch_users_last_seen(offset)
-
-
-        # if response.status_code == 200:
-        #     response_data = response.json()
-        #     if not response_data['data']:
-        #         break
-        #
-        #     for user_info in response_data['data']:
-        #         user_nickname = user_info.get('nickname', '')
-        #         last_seen_description = humanize_time_difference(user_info.get('lastSeenDate', None), lang)
-        #         print(f"{user_nickname} {last_seen_description}")
-        #         count += 1
-        #
-        #     offset += count
-        # else:
-        #     print(f"Failed to fetch data. Status code: {response.status_code}")
-        #     break
+    # while True:
+    #     count = 0
+    #     response = fetch_users_last_seen(offset)
+    #
+    #
+    #     if response.status_code == 200:
+    #         response_data = response.json()
+    #         if not response_data['data']:
+    #             break
+    #
+    #         for user_info in response_data['data']:
+    #             user_nickname = user_info.get('nickname', '')
+    #             last_seen_description = humanize_time_difference(user_info.get('lastSeenDate', None), lang)
+    #             print(f"{user_nickname} {last_seen_description}")
+    #             count += 1
+    #
+    #         offset += count
+    #     else:
+    #         print(f"Failed to fetch data. Status code: {response.status_code}")
+    #         break
 
     while True:
         input_command = input("Input your feature (1/2/3/4/5/6/7 or 'exit' to quit): ")
@@ -165,7 +187,11 @@ while True:
             print(totalUserMinutes(user_id))
 
         elif input_command == '6':
-            pass
+            user_id = input("User ID: A4DC2287-B03D-430C-92E8-02216D828709: ")
+            daily_avg, weekly_avg = averageUserTime(user_id)
+            print(f"For user {user_id}:\n"
+                  f"Average daily active time: {daily_avg:.0f} seconds\n"
+                  f"Average weekly active time: {weekly_avg:.0f} seconds")
 
         elif input_command == '7':
             pass

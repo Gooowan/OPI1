@@ -1,7 +1,9 @@
-
 import unittest
 from time_utils import humanize_time_difference
 from datetime import datetime, timedelta
+from unittest.mock import patch, Mock
+import main
+
 
 class TestTimeUtils(unittest.TestCase):
 
@@ -36,14 +38,10 @@ class TestTimeUtils(unittest.TestCase):
         long_time_ago = (datetime.utcnow() - timedelta(days=10)).isoformat()
         self.assertEqual(humanize_time_difference(long_time_ago, 'en'), "was online a long time ago")
 
+
 if __name__ == "__main__":
     unittest.main()
 
-
-
-import unittest
-from unittest.mock import patch, Mock
-import main
 
 class TestMainIntegration(unittest.TestCase):
 
