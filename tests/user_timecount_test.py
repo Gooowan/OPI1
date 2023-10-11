@@ -47,3 +47,35 @@ class TestUserTimeFunctions(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class IntegrationTestUserTimeFunctions(unittest.TestCase):
+
+    def setUp(self):
+        # This method will run before each test. You can use it to set up any shared resources.
+        self.user_id = 'sample_user'
+
+    def test_integration_totalUserMinutes(self):
+        # This test checks if the totalUserMinutes function can correctly fetch and process data from the data source.
+        minutes = totalUserMinutes(self.user_id)
+
+        # For demonstration, we're just checking the return type. In a real-world scenario,
+        # you might want to set up a known data state and then verify the results.
+        self.assertTrue(isinstance(minutes, int))
+
+    def test_integration_averageUserTime(self):
+        # This test checks if the averageUserTime function can correctly fetch and process data from the data source.
+        daily_avg, weekly_avg = averageUserTime(self.user_id)
+
+        # Again, we're checking return types for demonstration. Depending on your setup,
+        # you might want to compare against expected averages.
+        self.assertTrue(isinstance(daily_avg, (int, float)))
+        self.assertTrue(isinstance(weekly_avg, (int, float)))
+
+    def tearDown(self):
+        # This method will run after each test. You can use it to tear down or clean up any shared resources.
+        pass
+
+
+if __name__ == "__main__":
+    unittest.main()
