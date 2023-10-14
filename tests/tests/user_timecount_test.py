@@ -8,11 +8,11 @@ class TestUserTimeFunctions(unittest.TestCase):
     @patch('main.collect_api_data')
     def test_totalUserMinutes_single_entry(self, mock_collect_api_data):
         # Mock data: User was online once within the last minute
-        mock_collect_api_data.return_value = [{'userId': 'sample_user', 'lastSeenDate': '2023-10-11T12:00:00'}]
+        mock_collect_api_data.return_value = [{'userId': 'sample_user', 'lastSeenDate': f'2023-10-11T12:00:0{i}'} for i in range(3)]
 
         user_id = 'sample_user'
         result = totalUserMinutes(user_id)
-        self.assertEqual(result, 1)
+        self.assertEqual(result, 3)
 
     @patch('main.collect_api_data')
     def test_totalUserMinutes_no_entry(self, mock_collect_api_data):
@@ -26,7 +26,7 @@ class TestUserTimeFunctions(unittest.TestCase):
     @patch('main.collect_api_data')
     def test_averageUserTime_daily_average(self, mock_collect_api_data):
         # Mock data: User was online for 5 seconds every day for a week
-        mock_data = [{'userId': 'sample_user', 'lastSeenDate': f'2023-10-11T12:00:0{i}'} for i in range(5)]
+        mock_data = [{'userId': 'sample_user', 'lastSeenDate': f'2023-10-11T12:{i}:00'} for i in range(10, 15)]
         mock_collect_api_data.return_value = mock_data * 7
 
         user_id = 'sample_user'
@@ -45,7 +45,19 @@ class TestUserTimeFunctions(unittest.TestCase):
         self.assertEqual(weekly_avg, 0)
 
 
-if __name__ == "__main__":
+
+    @patch('main.collect_api_data')
+    def test_edge_case_continuous_online(self, mock_collect_api_data):
+        # Mock data: User was online continuously for 10 minutes
+        mock_data = [{'userId': 'sample_user', 'lastSeenDate': f'2023-10-11T12:{i}:00'} for i in range(10)]
+        mock_collect_api_data.return_value = mock_data
+
+        user_id = 'sample_user'
+        result = totalUserMinutes(user_id)
+        self.assertEqual(result, 10)
+
+
+    if __name__ == "__main__":
     unittest.main()
 
 
@@ -77,5 +89,17 @@ class IntegrationTestUserTimeFunctions(unittest.TestCase):
         pass
 
 
-if __name__ == "__main__":
+
+    @patch('main.collect_api_data')
+    def test_edge_case_continuous_online(self, mock_collect_api_data):
+        # Mock data: User was online continuously for 10 minutes
+        mock_data = [{'userId': 'sample_user', 'lastSeenDate': f'2023-10-11T12:{i}:00'} for i in range(10)]
+        mock_collect_api_data.return_value = mock_data
+
+        user_id = 'sample_user'
+        result = totalUserMinutes(user_id)
+        self.assertEqual(result, 10)
+
+
+    if __name__ == "__main__":
     unittest.main()

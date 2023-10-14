@@ -194,8 +194,12 @@ while True:
                   f"Average weekly active time: {weekly_avg:.0f} seconds")
 
         elif input_command == '7':
-            pass
-
+            user_id = input("Enter User ID to delete all their data (GDPR compliance): ")
+            if user_id in user_last_seen_data:
+                del user_last_seen_data[user_id]
+                print(f"All data related to user {user_id} has been deleted!")
+            else:
+                print("User ID not found.")
         elif input_command == 'exit':
             break
 

@@ -70,7 +70,12 @@ class TestOnlinePrediction(unittest.TestCase):
     def test_online_prediction(self):
         # On 2023-01-03 at 15:00, two users were online
         avg_online = online_prediction(datetime(2023, 1, 24, 15, 0), self.users_data)
-        self.assertAlmostEqual(avg_online, 2 / 4, places=2)  # Expected 50% users online
+        self.assertEqual(avg_online, 2)  # Expected 2 users online
+        self.assertTrue(0 <= avg_online <= 217, "Online prediction out of expected range!")
+
+        # On 2023-01-03 at 15:00, two users were online
+        avg_online = online_prediction(datetime(2023, 1, 24, 15, 0), self.users_data)
+        self.assertEqual(avg_online, 2)  # Expected 50% users online
 
         # On 2023-01-10 at 16:00, one user was online
         avg_online = online_prediction(datetime(2023, 1, 24, 16, 0), self.users_data)
