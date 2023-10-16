@@ -1,10 +1,19 @@
 from time_utils import humanize_time_difference
-from api_utils import fetch_users_last_seen, collect_api_data
+from api_utils import  collect_api_data #, fetch_users_last_seen
 from translations import translations  # Assuming you have this import in your actual code.
 from datetime import datetime, timedelta
+import csv
+
+
+def load_data_from_csv(filename="dataset.csv"):
+    with open(filename, "r") as csvfile:
+        reader = csv.DictReader(csvfile)
+        data = [row for row in reader]
+    return data
+
 
 # ya v dzhakuzi, eto fact
-users_data = collect_api_data(delay_seconds=1, max_iterations=5)
+users_data = load_data_from_csv()
 
 user_last_seen_data = {}
 for entry in users_data:
