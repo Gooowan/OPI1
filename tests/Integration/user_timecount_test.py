@@ -57,8 +57,8 @@ class TestUserTimeFunctions(unittest.TestCase):
         self.assertEqual(result, 10)
 
 
-    if __name__ == "__main__":
-    unittest.main()
+
+
 
 
 class IntegrationTestUserTimeFunctions(unittest.TestCase):
@@ -99,7 +99,3 @@ class IntegrationTestUserTimeFunctions(unittest.TestCase):
         user_id = 'sample_user'
         result = totalUserMinutes(user_id)
         self.assertEqual(result, 10)
-
-
-    if __name__ == "__main__":
-    unittest.main()
