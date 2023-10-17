@@ -1,18 +1,49 @@
+import os
+
 from time_utils import humanize_time_difference
 from api_utils import  collect_api_data #, fetch_users_last_seen
 from translations import translations  # Assuming you have this import in your actual code.
 from datetime import datetime, timedelta
 import csv
 
+# Global list to store the IDs of users whose data has been deleted (GDPR compliance)
+User_forgotten = []
+
+# File path for storing forgotten users' IDs
+forgotten_users_file = "forgotten_users.txt"
+
+
+def load_forgotten_users():
+    """
+    Load the IDs of forgotten users from the file.
+    """
+    if not os.path.exists(forgotten_users_file):
+        return []
+
+    with open(forgotten_users_file, "r") as file:
+        return file.read().splitlines()
+
+
+def save_forgotten_users():
+    """
+    Save the IDs of forgotten users to the file.
+    """
+    with open(forgotten_users_file, "a") as file:
+        for user_id in User_forgotten:
+            file.write(user_id + '\n')
+
+
+# Load forgotten users into the User_forgotten list during initialization
+User_forgotten.extend(load_forgotten_users())
+
 
 def load_data_from_csv(filename="dataset.csv"):
     with open(filename, "r") as csvfile:
         reader = csv.DictReader(csvfile)
-        data = [row for row in reader]
+        data = [row for row in reader if row['userId'] not in User_forgotten]
     return data
 
 
-# ya v dzhakuzi, eto fact
 users_data = load_data_from_csv()
 
 user_last_seen_data = {}
@@ -137,6 +168,15 @@ def averageUserTime(focus_user_id):
     return average_daily_time, average_weekly_time
 
 
+def gdpr_compliance(user_id):
+    if user_id in user_last_seen_data:
+        del user_last_seen_data[user_id]
+        User_forgotten.append(user_id)
+        print(f"All data related to user {user_id} has been deleted!")
+    else:
+        print("User ID not found.")
+
+
 while True:
     offset = 0
     lang = input("Enter your language, виберіть мову: en, ua: ")
@@ -204,13 +244,11 @@ while True:
 
         elif input_command == '7':
             user_id = input("Enter User ID to delete all their data (GDPR compliance): ")
-            if user_id in user_last_seen_data:
-                del user_last_seen_data[user_id]
-                print(f"All data related to user {user_id} has been deleted!")
-            else:
-                print("User ID not found.")
+            gdpr_compliance(user_id)
         elif input_command == 'exit':
+            save_forgotten_users()
             break
 
         else:
+
             print("Invalid feature choice. Try again.")
