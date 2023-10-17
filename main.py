@@ -14,9 +14,6 @@ forgotten_users_file = "forgotten_users.txt"
 
 
 def load_forgotten_users():
-    """
-    Load the IDs of forgotten users from the file.
-    """
     if not os.path.exists(forgotten_users_file):
         return []
 
@@ -25,9 +22,8 @@ def load_forgotten_users():
 
 
 def save_forgotten_users():
-    """
-    Save the IDs of forgotten users to the file.
-    """
+    if not User_forgotten:
+        return "Nothing to save"
     with open(forgotten_users_file, "a") as file:
         for user_id in User_forgotten:
             file.write(user_id + '\n')
