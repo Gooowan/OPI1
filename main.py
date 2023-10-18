@@ -2,8 +2,10 @@ import os
 
 from time_utils import humanize_time_difference
 from api_utils import  collect_api_data #, fetch_users_last_seen
-from translations import translations  # Assuming you have this import in your actual code.
+from translations import translations
 from datetime import datetime, timedelta
+from reports import generate_report, get_report, compute_user_metrics, averageUserTime
+
 import csv
 
 # Global list to store the IDs of users whose data has been deleted (GDPR compliance)
@@ -38,6 +40,23 @@ def load_data_from_csv(filename="dataset.csv"):
         reader = csv.DictReader(csvfile)
         data = [row for row in reader if row['userId'] not in User_forgotten]
     return data
+
+
+def delete_forgotten_users_from_csv(filename="dataset.csv"):
+    demo_data = []
+    with open(filename, "r") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if row['userId'] not in User_forgotten:
+                demo_data.append(row)
+
+
+    with open(filename, "w", newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=reader.fieldnames)
+        writer.writeheader()
+        writer.writerows(demo_data)
+
+    print(f"Data for forgotten users has been deleted from {filename}")
 
 
 users_data = load_data_from_csv()
@@ -141,33 +160,11 @@ def totalUserMinutes(focus_user_id):
     return total_seconds
 
 
-def averageUserTime(focus_user_id):
-
-    users_data = collect_api_data(delay_seconds=1,
-                                  max_iterations=7 * 24 * 60 * 60)
-
-    daily_seconds = [0 for _ in range(7)]
-    total_seconds = 0
-
-    current_time = datetime.utcnow()
-
-    for entry in users_data:
-        if entry['userId'] == focus_user_id:
-            day_difference = (current_time - datetime.fromisoformat(entry['lastSeenDate'])).days
-            if 0 <= day_difference < 7:
-                daily_seconds[day_difference] += 1
-                total_seconds += 1
-
-    average_daily_time = sum(daily_seconds) / 7
-    average_weekly_time = total_seconds
-
-    return average_daily_time, average_weekly_time
-
-
 def gdpr_compliance(user_id):
     if user_id in user_last_seen_data:
         del user_last_seen_data[user_id]
         User_forgotten.append(user_id)
+        delete_forgotten_users_from_csv()
         print(f"All data related to user {user_id} has been deleted!")
     else:
         print("User ID not found.")
@@ -241,6 +238,17 @@ while True:
         elif input_command == '7':
             user_id = input("Enter User ID to delete all their data (GDPR compliance): ")
             gdpr_compliance(user_id)
+        elif input_command == '8':
+            report_name = "SampleReport"
+            metrics = ["dailyAverage", "weeklyAverage", "total", "min", "max"]
+            users = ["A4DC2287-B03D-430C-92E8-02216D828709"]
+
+            date_to = datetime.today()
+            date_from = date_to - timedelta(days=7)
+
+            report = generate_report(report_name, metrics, users, date_from, date_to)
+            print(report)
+
         elif input_command == 'exit':
             save_forgotten_users()
             break
