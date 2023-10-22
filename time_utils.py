@@ -25,9 +25,9 @@ def humanize_time_difference(last_seen_date, lang='en'):
         return translations[lang]['just_now']
     elif difference < timedelta(seconds=59):
         return translations[lang]['less_minute']
-    elif difference < timedelta(minutes=59):
+    elif difference <= timedelta(minutes=59):
         return translations[lang]['couple_minutes']
-    elif difference < timedelta(minutes=119):
+    elif difference <= timedelta(minutes=119):
         return translations[lang]['hour_ago']
     elif date_time >= start_of_today:
         return translations[lang]['today']
