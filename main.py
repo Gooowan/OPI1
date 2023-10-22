@@ -4,7 +4,7 @@ from time_utils import humanize_time_difference
 from api_utils import  collect_api_data #, fetch_users_last_seen
 from translations import translations
 from datetime import datetime, timedelta
-from reports import generate_report, get_report, compute_user_metrics, averageUserTime
+from reports import generate_report, get_report, averageUserTime
 
 import csv
 
@@ -241,12 +241,15 @@ while True:
         elif input_command == '8':
             report_name = "SampleReport"
             metrics = ["dailyAverage", "weeklyAverage", "total", "min", "max"]
-            users = ["A4DC2287-B03D-430C-92E8-02216D828709"]
+            users = ["2fba2529-c166-8574-2da2-eac544d82634"]
 
             date_to = datetime.today()
             date_from = date_to - timedelta(days=7)
 
             report = generate_report(report_name, metrics, users, date_from, date_to)
+            print(report)
+        elif input_command == '9':
+            report = get_report("SampleReport")
             print(report)
 
         elif input_command == 'exit':

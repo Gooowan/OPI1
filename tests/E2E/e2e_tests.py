@@ -82,3 +82,18 @@ class TestE2EUserTimeFunctions(unittest.TestCase):
         self.assertIn("Invalid feature choice. Try again.", output, msg=f"Error output: {error_output}")
 
 
+
+
+    def test_e2e_retrieve_special_report(self):
+        # Start the application as a subprocess
+        process = subprocess.Popen(['python', '/Users/bunjee/PycharmProjects/OPI1/main.py'], 
+                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, 
+                                   stderr=subprocess.PIPE, text=True)
+
+        # Simulate user input to retrieve the report with a special name and then exit
+        output, _ = process.communicate(input='9\nexit\n')
+
+        # Checking if the output contains the expected phrases indicating successful retrieval of the report.
+        # This check can be more detailed based on the exact content/format of the report.
+        self.assertIn("SampleReport", output)
+
