@@ -13,31 +13,28 @@ DAYS_IN_WEEK = 7
 dataset_df = pd.read_csv("dataset.csv")
 
 
-def adjusted_averageUserTime(focus_user_id, filename='dataset.csv'):
-    import pandas as pd
-    from datetime import datetime
+def averageUserTime(focus_user_id):
+    users_data = collect_api_data(delay_seconds=1, max_iterations=DAYS_IN_WEEK * 24 * 60 * 60)
+    daily_seconds = [0 for _ in range(DAYS_IN_WEEK)]
+    total_seconds = 0
+    current_time = datetime.utcnow()
 
-    # Read data from the specified CSV file within the function
-    df = pd.read_csv(filename)
-    df['lastSeenDate'] = pd.to_datetime(df['lastSeenDate'])
+    for entry in users_data:
+        if entry['userId'] == focus_user_id:
+            # Ensure time zones are consistent for this calculation
+            day_difference = (current_time - datetime.fromisoformat(entry['lastSeenDate'])).days
+            if 0 <= day_difference < DAYS_IN_WEEK:
+                daily_seconds[day_difference] += 1
+                total_seconds += 1
 
-    total_time = 0
-    days = 0
-    for index, row in df.iterrows():
-        if row['userId'] == focus_user_id:
-            total_time += (datetime.utcnow() - row['lastSeenDate']).seconds
-            days += 1
+    average_daily_time = sum(daily_seconds) / DAYS_IN_WEEK
+    average_weekly_time = total_seconds
 
-    # Handle the case where days is zero
-    average_daily = total_time / days if days != 0 else 0
-    average_weekly = average_daily * 7
-
-    return {focus_user_id: {"average_daily": average_daily, "average_weekly": average_weekly}}
-
+    return average_daily_time, average_weekly_time, daily_seconds, total_seconds
 
 def compute_user_metrics(focus_user_id, metrics, date_from=None, date_to=None):
     # TODO: Utilize date_from and date_to for more refined metrics calculation
-    average_daily, average_weekly, daily_seconds, total_seconds = adjusted_averageUserTime(focus_user_id)
+    average_daily, average_weekly, daily_seconds, total_seconds = averageUserTime(focus_user_id)
     metric_data = {}
     if "dailyAverage" in metrics:
         metric_data["dailyAverage"] = average_daily
@@ -119,7 +116,7 @@ def get_report(report_name, date_from=None, date_to=None):
                 if metric in ["dailyAverage", "weeklyAverage"]:
                     user_data[metric] = value
                 elif metric in ["total", "min", "max"]:
-                    avg_daily, avg_weekly, daily_seconds, total_seconds = adjusted_averageUserTime(user_id)
+                    avg_daily, avg_weekly, daily_seconds, total_seconds = averageUserTime(user_id)
                     if metric == "total":
                         user_data["total"] = total_seconds
                     elif metric == "min":
