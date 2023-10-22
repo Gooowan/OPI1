@@ -241,7 +241,7 @@ while True:
         elif input_command == '8':
             report_name = "SampleReport"
             metrics = ["dailyAverage", "weeklyAverage", "total", "min", "max"]
-            users = ["A4DC2287-B03D-430C-92E8-02216D828709"]
+            users = ["2fba2529-c166-8574-2da2-eac544d82634"]
 
             date_to = datetime.today()
             date_from = date_to - timedelta(days=7)
