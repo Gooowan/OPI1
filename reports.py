@@ -1,35 +1,86 @@
+
 from datetime import datetime
-
 import pandas as pd
-
 from api_utils import collect_api_data
+import csv
+
+# Global variable to store all reports
+all_reports = {}
+
+# Constants
+DAYS_IN_WEEK = 7
 
 dataset_df = pd.read_csv("dataset.csv")
 
-def averageUserTime(focus_user_id):
 
-    users_data = collect_api_data(delay_seconds=1,
-                                  max_iterations=7 * 24 * 60 * 60)
+def adjusted_averageUserTime(focus_user_id, filename='dataset.csv'):
+    import pandas as pd
+    from datetime import datetime
 
-    daily_seconds = [0 for _ in range(7)]
-    total_seconds = 0
+    # Read data from the specified CSV file within the function
+    df = pd.read_csv(filename)
+    df['lastSeenDate'] = pd.to_datetime(df['lastSeenDate'])
 
-    current_time = datetime.utcnow()
+    total_time = 0
+    days = 0
+    for index, row in df.iterrows():
+        if row['userId'] == focus_user_id:
+            total_time += (datetime.utcnow() - row['lastSeenDate']).seconds
+            days += 1
 
-    for entry in users_data:
-        if entry['userId'] == focus_user_id:
-            day_difference = (current_time - datetime.fromisoformat(entry['lastSeenDate'])).days
-            if 0 <= day_difference < 7:
-                daily_seconds[day_difference] += 1
-                total_seconds += 1
+    # Handle the case where days is zero
+    average_daily = total_time / days if days != 0 else 0
+    average_weekly = average_daily * 7
 
-    average_daily_time = sum(daily_seconds) / 7
-    average_weekly_time = total_seconds
+    return {focus_user_id: {"average_daily": average_daily, "average_weekly": average_weekly}}
 
-    return average_daily_time, average_weekly_time, daily_seconds, total_seconds
 
-def compute_user_metrics(focus_user_id, metrics, date_from, date_to):
-    average_daily, average_weekly, daily_seconds, total_seconds = averageUserTime(focus_user_id)
+def compute_user_metrics(focus_user_id, metrics, date_from=None, date_to=None):
+    # TODO: Utilize date_from and date_to for more refined metrics calculation
+    average_daily, average_weekly, daily_seconds, total_seconds = adjusted_averageUserTime(focus_user_id)
+    metric_data = {}
+    if "dailyAverage" in metrics:
+        metric_data["dailyAverage"] = average_daily
+    if "weeklyAverage" in metrics:
+        metric_data["weeklyAverage"] = average_weekly
+    if "total" in metrics:
+        metric_data["total"] = total_seconds
+    if "min" in metrics:
+        metric_data["min"] = min(daily_seconds)
+    if "max" in metrics:
+        metric_data["max"] = max(daily_seconds)
+
+    return metric_data
+
+
+def read_csv_data(filename):
+    with open(filename, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        data = [row for row in reader]
+    return data
+
+
+def averageUserTime_from_csv(focus_user_id, csv_data):
+    user_times = [int(row['timeSpentSeconds']) for row in csv_data if int(row['userId']) == focus_user_id]
+    total_seconds = sum(user_times)
+    daily_seconds = user_times  # Assuming each record corresponds to a day
+    average_daily = total_seconds / len(daily_seconds)
+    average_weekly = 7 * average_daily
+    return average_daily, average_weekly, daily_seconds, total_seconds
+
+
+def compute_user_metrics_from_csv(focus_user_id, metrics, filename, date_from=None, date_to=None):
+    csv_data = read_csv_data(filename)
+
+    # Filter data based on date range if provided
+    if date_from or date_to:
+        csv_data = [
+            row for row in csv_data
+            if (not date_from or datetime.strptime(row['date'], '%Y-%m-%d').date() >= date_from) and
+               (not date_to or datetime.strptime(row['date'], '%Y-%m-%d').date() <= date_to)
+        ]
+
+    average_daily, average_weekly, daily_seconds, total_seconds = averageUserTime_from_csv(focus_user_id, csv_data)
 
     metric_data = {}
     if "dailyAverage" in metrics:
@@ -46,11 +97,14 @@ def compute_user_metrics(focus_user_id, metrics, date_from, date_to):
     return metric_data
 
 
-def generate_report(report_name, metrics, users, date_from, date_to):
+def generate_report(report_name, metrics, users, date_from=None, date_to=None):
     report = {}
     for user_id in users:
-        report[user_id] = compute_user_metrics(user_id, metrics, date_from, date_to)
-
+        try:
+            report[user_id] = compute_user_metrics_from_csv(user_id, metrics, "dataset.csv", date_from, date_to)
+        except Exception as e:
+            report[user_id] = {"error": str(e)}
+    
     all_reports[report_name] = report
     return report
 
@@ -65,7 +119,7 @@ def get_report(report_name, date_from=None, date_to=None):
                 if metric in ["dailyAverage", "weeklyAverage"]:
                     user_data[metric] = value
                 elif metric in ["total", "min", "max"]:
-                    avg_daily, avg_weekly, daily_seconds, total_seconds = averageUserTime(user_id, date_from, date_to)
+                    avg_daily, avg_weekly, daily_seconds, total_seconds = adjusted_averageUserTime(user_id)
                     if metric == "total":
                         user_data["total"] = total_seconds
                     elif metric == "min":
@@ -75,6 +129,3 @@ def get_report(report_name, date_from=None, date_to=None):
             filtered_report[user_id] = user_data
         return filtered_report
     return report
-
-
-all_reports = {}
