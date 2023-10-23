@@ -4,7 +4,7 @@ from time_utils import humanize_time_difference
 from api_utils import  collect_api_data #, fetch_users_last_seen
 from translations import translations
 from datetime import datetime, timedelta
-from reports import generate_report, get_report, averageUserTime
+from reports import generate_report, get_report, adjusted_averageUserTime
 
 import csv
 
@@ -230,7 +230,7 @@ while True:
 
         elif input_command == '6':
             user_id = input("User ID: A4DC2287-B03D-430C-92E8-02216D828709: ")
-            daily_avg, weekly_avg = averageUserTime(user_id)
+            daily_avg, weekly_avg = adjusted_averageUserTime(user_id)
             print(f"For user {user_id}:\n"
                   f"Average daily active time: {daily_avg:.0f} seconds\n"
                   f"Average weekly active time: {weekly_avg:.0f} seconds")
