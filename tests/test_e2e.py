@@ -5,7 +5,7 @@ from unittest.mock import patch
 from api_utils import collect_api_data
 from createdata import save_data_to_csv
 from reports import adjusted_averageUserTime
-from tests.test_integration_data import mock_collect_api_data
+from tests.test_integration import mock_collect_api_data
 
 
 class TestE2EReportGenerationWithFilename(unittest.TestCase):
