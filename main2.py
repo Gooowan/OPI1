@@ -211,7 +211,27 @@ def route_gdpr_compliance():
     user_id = request.args.get("user_id")
     return jsonify(gdpr_compliance(user_id))
 
-# Additional routes can be added here
+from reports import generate_report, get_report
+
+
+@app.route('/generate_report', methods=['POST'])
+def generate_report_endpoint():
+    report_name = "Report2"
+    metrics = ["dailyAverage", "weeklyAverage", "total", "min", "max"]
+    users = ["e13412b2-fe46-7149-6593-e47043f39c91"]
+
+    date_to = "2023-10-26T10:35:02.2858998+00:00"
+    date_from = "2000-10-26T13:20:02.2858998+00:00"
+    report = generate_report(report_name, metrics, users, date_from, date_to)
+    return jsonify(report)
+
+
+@app.route('/get_report/report_name', methods=['POST'])
+def get_report_endpoint(report_name):
+
+    report = "Report2"
+    return jsonify(report)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

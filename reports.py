@@ -13,6 +13,49 @@ DAYS_IN_WEEK = 7
 dataset_df = pd.read_csv("dataset.csv")
 
 
+from datetime import datetime
+import pandas as pd
+
+from datetime import datetime
+import pandas as pd
+
+
+def adjusted_averageUserTime_within_range(focus_user_id, filename='dataset.csv', date_from=None, date_to=None):
+    # Read data from the specified CSV file
+    df = pd.read_csv(filename)
+
+    # Converting 'lastSeenDate' to datetime, considering NaNs and timezone
+    df['lastSeenDate'] = pd.to_datetime(df['lastSeenDate'], errors='coerce', utc=True)
+
+    # Filter data based on date_from and date_to if provided
+    if date_from is not None:
+        df = df[df['lastSeenDate'] >= pd.to_datetime(date_from, utc=True)]
+    if date_to is not None:
+        df = df[df['lastSeenDate'] <= pd.to_datetime(date_to, utc=True)]
+
+    # Initialize variables to calculate total time and count of days
+    total_time = 0
+    days = 0
+    daily_seconds = []
+
+    # Iterate over each row to calculate the total time and days
+    for index, row in df.iterrows():
+        if row['userId'] == focus_user_id and pd.notna(row['lastSeenDate']):
+            seconds_spent = (datetime.utcnow().replace(tzinfo=pd.Timestamp.utcnow().tz) - row[
+                'lastSeenDate']).total_seconds()
+            total_time += seconds_spent
+            days += 1
+            daily_seconds.append(seconds_spent)
+
+    # Handle the case where days is zero to avoid division by zero
+    average_daily = total_time / days if days != 0 else 0
+    average_weekly = average_daily * 7
+    total_seconds = total_time
+
+    # Return a dictionary with the calculated metrics
+    return average_daily, average_weekly, daily_seconds, total_seconds
+
+
 def adjusted_averageUserTime(focus_user_id, filename='dataset.csv'):
     import pandas as pd
     from datetime import datetime
@@ -25,7 +68,7 @@ def adjusted_averageUserTime(focus_user_id, filename='dataset.csv'):
     days = 0
     for index, row in df.iterrows():
         if row['userId'] == focus_user_id:
-            total_time += (datetime.utcnow() - row['lastSeenDate']).seconds
+            #total_time += (datetime.utcnow() - row['lastSeenDate']).seconds
             days += 1
 
     # Handle the case where days is zero
@@ -36,8 +79,10 @@ def adjusted_averageUserTime(focus_user_id, filename='dataset.csv'):
 
 
 def compute_user_metrics(focus_user_id, metrics, date_from=None, date_to=None):
-    # TODO: Utilize date_from and date_to for more refined metrics calculation
-    average_daily, average_weekly, daily_seconds, total_seconds = adjusted_averageUserTime(focus_user_id)
+    average_daily, average_weekly, daily_seconds, total_seconds = adjusted_averageUserTime_within_range(
+        focus_user_id, date_from=date_from, date_to=date_to
+    )
+    # average_daily, average_weekly, daily_seconds, total_seconds = adjusted_averageUserTime(focus_user_id)
     metric_data = {}
     if "dailyAverage" in metrics:
         metric_data["dailyAverage"] = average_daily
@@ -101,9 +146,10 @@ def generate_report(report_name, metrics, users, date_from=None, date_to=None):
     report = {}
     for user_id in users:
         try:
-            report[user_id] = compute_user_metrics_from_csv(user_id, metrics, "dataset.csv", date_from, date_to)
+            # report[user_id] = compute_user_metrics_from_csv(user_id, metrics, "dataset.csv", date_from, date_to)
+            report[user_id] = compute_user_metrics(user_id, metrics, date_from, date_to)
         except Exception as e:
-            report[user_id] = {"error": str(e)}
+            report[user_id] = {"error": e}
     
     all_reports[report_name] = report
     return report

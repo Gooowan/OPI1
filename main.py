@@ -239,17 +239,20 @@ while True:
             user_id = input("Enter User ID to delete all their data (GDPR compliance): ")
             gdpr_compliance(user_id)
         elif input_command == '8':
-            report_name = "SampleReport"
+            report_name = "Report2"
             metrics = ["dailyAverage", "weeklyAverage", "total", "min", "max"]
-            users = ["2fba2529-c166-8574-2da2-eac544d82634"]
+            users = ["e13412b2-fe46-7149-6593-e47043f39c91"]
 
-            date_to = datetime.today()
-            date_from = date_to - timedelta(days=7)
+            date_to = "2023-10-26T10:35:02.2858998+00:00"
+            date_from = "2000-10-26T13:20:02.2858998+00:00"
 
             report = generate_report(report_name, metrics, users, date_from, date_to)
             print(report)
         elif input_command == '9':
-            report = get_report("SampleReport")
+            report = get_report("Report2")
+            print(report)
+        elif input_command == '10':
+            report = get_report("Report2")
             print(report)
 
         elif input_command == 'exit':
