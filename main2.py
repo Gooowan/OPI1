@@ -4,7 +4,7 @@ app = Flask(__name__)
 import os
 
 from time_utils import humanize_time_difference
-from api_utils import  collect_api_data #, fetch_users_last_seen
+from api_utils import collect_api_data, fetch_users_last_seen  # , fetch_users_last_seen
 from translations import translations
 from datetime import datetime, timedelta
 from reports import generate_report, get_report, adjusted_averageUserTime
@@ -173,6 +173,7 @@ def gdpr_compliance(user_id):
         return {"error": "User ID not found."}
 
 
+
 @app.route('/users_online')
 def route_users_online():
     return jsonify(usersOnline())
@@ -233,5 +234,35 @@ def get_report_endpoint(report_name):
     return jsonify(report)
 
 
+@app.route('/list', methods=['GET'])
+def get_users():
+    try:
+        all_users = []
+        offset = 0
+        while True:
+            response = fetch_users_last_seen(offset)
+            if response.status_code == 200:
+                response_data = response.json()
+                if not response_data['data']:
+                    break
+
+                simplified_users = [
+                    {"nickname": user.get("nickname", "No nickname"),
+                     "userId": user.get("userId", "No userId")}
+                    for user in response_data['data']
+                ]
+
+                all_users.extend(simplified_users)
+                offset += len(response_data['data'])
+            else:
+                return jsonify({"error": f"Failed to fetch data. Status code: {response.status_code}"}), response.status_code
+
+        return jsonify(all_users), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+print(get_users)
