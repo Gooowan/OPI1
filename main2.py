@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 import os
-
+from dateutil import parser
 from time_utils import humanize_time_difference
 from api_utils import collect_api_data, fetch_users_last_seen  # , fetch_users_last_seen
 from translations import translations
@@ -234,35 +234,63 @@ def get_report_endpoint(report_name):
     return jsonify(report)
 
 
-@app.route('/list', methods=['GET'])
 def get_users():
     try:
-        all_users = []
+        all_users = {}
         offset = 0
-        while True:
+
+        for i in range(0, 10):
             response = fetch_users_last_seen(offset)
             if response.status_code == 200:
                 response_data = response.json()
                 if not response_data['data']:
                     break
 
-                simplified_users = [
-                    {"nickname": user.get("nickname", "No nickname"),
-                     "userId": user.get("userId", "No userId")}
-                    for user in response_data['data']
-                ]
+                for user in response_data['data']:
+                    user_id = user.get("userId", "No userId")
+                    nickname = user.get("nickname", "No nickname")
+                    last_seen = user.get("lastSeenDate")
 
-                all_users.extend(simplified_users)
+                    if last_seen:
+                        try:
+                            last_seen_date = parser.isoparse(last_seen)
+                        except ValueError:
+                            continue
+
+                        if user_id not in all_users or last_seen_date < all_users[user_id]["firstOnline"]:
+                            all_users[user_id] = {
+                                "nickname": nickname,
+                                "userId": user_id,
+                                "firstOnline": last_seen_date
+                            }
+
                 offset += len(response_data['data'])
             else:
                 return jsonify({"error": f"Failed to fetch data. Status code: {response.status_code}"}), response.status_code
 
-        return jsonify(all_users), 200
+        for user_id, data in all_users.items():
+            data["firstOnline"] = data["firstOnline"].isoformat()
+
+        ordered_data = [
+            {
+                "nickname": data["nickname"],
+                "userId": data["userId"],
+                "firstOnline": data["firstOnline"]
+            }
+            for data in all_users.values()
+        ]
+
+        return ordered_data, 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}, 500
+
+@app.route('/list', methods=['GET'])
+def list_users_route():
+    data, status_code = get_users()
+    return jsonify(data), status_code
 
 
 if __name__ == '__main__':
     app.run(debug=True)
 
-print(get_users)
+
